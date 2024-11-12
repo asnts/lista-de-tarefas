@@ -2,37 +2,25 @@ const express = require('express');
 
 const router = express.Router();
 
-
-
-// const tarefasController = require('../controller/tarefasController');
-// //const tarefasMiddleware = require('./middlewares/tarefasMiddleware');
-
-// router.get('/tarefas', tarefasController.getAll);
-// router.post('/tarefas', tarefasController.criarTarefa); //tarefasMiddleware.validateFieldTitle
-// router.delete('/tarefas/:id', tarefasController.deleteTask);
-// router.put('/tarefas/:id',
-//   // tarefasMiddleware.validateFieldTitle,
-//   // tarefasMiddleware.validateFieldStatus,
-//   // tarefasController.updateTask,
-// );
+const db = require('../database/tarefasdb'); 
 
 
 router.get('/tarefas', (req, res) => {
-    db.query('SELECT * FROM Tarefas ORDER BY ordem', (err, results) => {
+    db.query('SELECT * FROM Tarefas ORDER BY id ASC', (err, results) => {
       if (err) return res.status(500).send(err);
       res.json(results);
     });
   });
 
   router.post('/tarefas', (req, res) => {
-    const { nome, custo, data_limite } = req.body;
+    const { nome, custo, data } = req.body;
     
-    db.query('SELECT MAX(ordem) AS maxOrdem FROM Tarefas', (err, results) => {
+    db.query('SELECT MAX(id) AS maxId FROM Tarefas', (err, results) => {
       if (err) return res.status(500).send(err);
       const novaOrdem = (results[0].maxOrdem || 0) + 1;
   
-      db.query('INSERT INTO Tarefas (nome, custo, data, ordem) VALUES (?, ?, ?, ?)', 
-      [nome, custo, data_limite, novaOrdem], (err, result) => {
+      db.query('INSERT INTO Tarefas (nome, custo, data) VALUES (?, ?, ?)', 
+      [nome, custo, data], (err, result) => {
         if (err) return res.status(400).send(err);
         res.status(201).send('Tarefa incluída com sucesso!');
       });
@@ -47,7 +35,7 @@ router.get('/tarefas', (req, res) => {
       if (err) return res.status(500).send(err);
       if (results.length > 0) return res.status(400).send('Nome da tarefa já existe.');
   
-      db.query('UPDATE Tarefas SET nome = ?, custo = ?, data_limite = ? WHERE id = ?', 
+      db.query('UPDATE Tarefas SET nome = ?, custo = ?, data = ? WHERE id = ?', 
       [nome, custo, data_limite, id], (err, result) => {
         if (err) return res.status(500).send(err);
         res.send('Tarefa atualizada com sucesso!');
