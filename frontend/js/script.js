@@ -1,41 +1,62 @@
-const tbody = document.querySelector('tbody');
-const addForm = document.querySelector('.form');
 const incluirTarefa = document.querySelector('.incluir-tarefa');
+const incluirCusto = document.querySelector('.incluir-custo');
+const incluirData = document.querySelector('.incluir-data');
+const tbody = document.querySelector('tbody');
+const addTarefa = document.querySelector('.tarefa-form');  // Corrigi a seleção do formulário
 
 const fetchTasks = async () => {
-  const response = await fetch('http://localhost:3333/tarefas')
-  const tarefas = await response.json()
+  const response = await fetch('http://localhost:3333/tarefas');
+  const tarefas = await response.json();
   return tarefas;
 }
 
 const criarTarefa = async (event) => {
   event.preventDefault();
 
-  const tarefa = { title: incluirTarefa.value };
+  const tarefaNome = incluirTarefa.value.trim();
+  const tarefaCusto = incluirCusto.value.trim();
+  const tarefaData = incluirData.value;
 
-  await fetch('http://localhost:3333/tarefas', {
-    method: 'post',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(tarefa),
-  });
+  if (!tarefaNome || !tarefaCusto || !tarefaData) {
+    alert("Por favor, preencha todos os campos da tarefa.");
+    return;
+  }
 
+  const tarefa = {
+    nome: tarefaNome,
+    custo: parseFloat(tarefaCusto).toFixed(2),
+    data: new Date(tarefaData).toISOString()
+  };
 
- atualizarTarefas();
-  incluirTarefa.value = '';
-}
+  try {
+    const response = await fetch('http://localhost:3333/tarefas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tarefa),
+    });
+
+    if (!response.ok) throw new Error("Erro ao criar tarefa");
+
+    atualizarTarefas();
+    incluirTarefa.value = '';
+    incluirCusto.value = '';
+    incluirData.value = '';
+  } catch (error) {
+    console.error("Erro ao enviar tarefa:", error);
+  }
+};
 
 const deletarTarefa = async (id) => {
   await fetch(`http://localhost:3333/tarefas/${id}`, {
-    method: 'delete',
+    method: 'DELETE',
   });
 
   atualizarTarefas();
 }
 
 const atualizarTarefaId = async ({ id, nome, custo }) => {
-
   await fetch(`http://localhost:3333/tarefas/${id}`, {
-    method: 'put',
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nome, custo }),
   });
@@ -43,74 +64,56 @@ const atualizarTarefaId = async ({ id, nome, custo }) => {
   atualizarTarefas();
 }
 
-
-
 const formatDate = (dateUTC) => {
   const options = { dateStyle: 'long', timeStyle: 'short' };
-  const date = new Date(dateUTC).toLocaleString('pt-br', options);
-  return date;
+  return new Date(dateUTC).toLocaleString('pt-BR', options);
 }
 
 const createElement = (tag, innerText = '', innerHTML = '') => {
   const element = document.createElement(tag);
-
-  if (innerText) {
-    element.innerText = innerText;
-  }
-
-  if (innerHTML) {
-    element.innerHTML = innerHTML;
-  }
-
+  if (innerText) element.innerText = innerText;
+  if (innerHTML) element.innerHTML = innerHTML;
   return element;
 }
 
-
 const createRow = (tarefa) => {
-
   const { id, nome, custo, data } = tarefa;
 
   const tr = createElement('tr');
   const tdNome = createElement('td', nome);
   const tdCusto = createElement('td', custo);
-  const tdData = createElement('td', formatDate());
+  const tdData = createElement('td', formatDate(data));  // Corrigido para passar 'td' como primeiro argumento
   const tdActions = createElement('td');
-
-   select.addEventListener('change', ({ target }) => updateTask({ ...tarefa, status: target.value }));
 
   const editButton = createElement('button', '', '<span class="material-symbols-outlined">edit</span>');
   const deleteButton = createElement('button', '', '<span class="material-symbols-outlined">delete</span>');
-  
+
   const editForm = createElement('form');
   const editInput = createElement('input');
-
-  editInput.value = title;
+  editInput.value = nome;
   editForm.appendChild(editInput);
-  
+
   editForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    
-    updateTask({ id, title: editInput.value});
+    atualizarTarefaId({ id, nome: editInput.value, custo });
   });
 
   editButton.addEventListener('click', () => {
-    tdTitle.innerText = '';
-    tdTitle.appendChild(editForm);
+    tdNome.innerText = '';
+    tdNome.appendChild(editForm);
   });
 
   editButton.classList.add('btn-action');
   deleteButton.classList.add('btn-action');
 
-  deleteButton.addEventListener('click', () => deleteTask(id));
-  
-  tdStatus.appendChild(select);
+  deleteButton.addEventListener('click', () => deletarTarefa(id));
 
   tdActions.appendChild(editButton);
   tdActions.appendChild(deleteButton);
 
-  tr.appendChild(tdTitle);
-  tr.appendChild(tdCreatedAt);
-  tr.appendChild(tdStatus);
+  tr.appendChild(tdNome);
+  tr.appendChild(tdCusto);
+  tr.appendChild(tdData);
   tr.appendChild(tdActions);
 
   return tr;
@@ -118,8 +121,7 @@ const createRow = (tarefa) => {
 
 const atualizarTarefas = async () => {
   const tasks = await fetchTasks();
-
-  tbody.innerHTML = '';
+  tbody.innerHTML = ''; // Limpa o conteúdo do tbody antes de adicionar as tarefas
 
   tasks.forEach((task) => {
     const tr = createRow(task);
@@ -127,7 +129,6 @@ const atualizarTarefas = async () => {
   });
 }
 
+addTarefa.addEventListener('submit', criarTarefa);
 
-addForm.addEventListener('submit', addTask);
-
-carregarTarefas();
+atualizarTarefas(); // Carrega as tarefas inicialmente
