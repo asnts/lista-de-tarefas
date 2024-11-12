@@ -4,50 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
     <title>Lista de tarefas</title>
     
 </head>
 
 <body>
 
+    <main class="geral"> 
+
+    <h1 class="titulo">Lista de Tarefas</h1>
+
     <div class="form">
         <form action="" method="post">
+            
+            <input type="text" placeholder="Adicionar tarefa" class="incluir-tarefa">
+           <button type="submit">+</button>    
 
-            <div class="id">
-                <label for="id da tarefa">ID da tarefa</label>
-                <input type="text" id="nome" />
+           
+        <table class="tabela">
+            <thead>
+              <tr>
+                <th>Tarefa</th>
+                <th>Custo</th>
+                <th>Data limite</th>
+                <th>Ordem</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
 
-            </div>
-
-            <div class="nome">
-                <label for="nome da tarefa">Nome da tarefa</label>
-                <input type="text" id="nome" />
-
-            </div>
-
-
-            <div class="custo">
-                <label for="custo da tarefa">Custo da tarefa</label>
-                <input type="number" id="custo" />
-
-            </div>
-
-            <div class="data">
-                <label for="data limite">Data limite</label>
-                <input type="date" id="custo" />
-
-            </div>
-
-            <div class="buttom">
-                <button type="submit">Cadastrar tarefa</button>
-
-            </div>
+            <!-- <tbody>
+                <tr>
+                  <td>título da tarefa</td>
+                  <td>50.00</td>
+                  <td>14/11/2024</td>
+                  <td>1</td>
+                   <td>
+                    <button class="btn-action">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+        
+                    <button class="btn-action-delete">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody> -->
 
 
 
         </form>
     </div>
+</main>
+
+    <script src="./js/script.js"></script>
 </body>
 
 </html>
