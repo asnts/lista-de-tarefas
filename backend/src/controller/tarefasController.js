@@ -6,7 +6,7 @@ const getAll = async (_request, response) => {
     return response.status(200).json(tarefas);
 };
 
-const criarTarefa = async(req, response) =>{
+const criarTarefa = async(request, response) => {
     const tarefaCriada = await tarefasModel.criarTarefa(request.body);
     return response.status(201).json(tarefaCriada);
 };
