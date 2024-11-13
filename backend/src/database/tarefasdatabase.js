@@ -2,10 +2,13 @@ import Database from "../infra/configDB.js";
 class DatabaseMetodos {
     static tableTarefas() {
         const tarefa = `CREATE TABLE IF NOT EXISTS Tarefas
-                         ( id INT AUTO_INCREMENT PRIMARY KEY,
-                          nome TEXT,
-                          custo INTEGER,
-                          data DATE)`
+                         (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(255) UNIQUE NOT NULL,
+    custo DECIMAL(10, 2) NOT NULL,
+    data_limite DATE,
+    ordem INTEGER UNIQUE NOT NULL
+);`
         return new Promise((resolve, reject) => {
             Database.run(pedido, (e) => {
                 if (e) {
@@ -17,7 +20,7 @@ class DatabaseMetodos {
         })
     };
     static criarTarefa(tarefa) {
-        const query = `INSERT INTO Tarefas (nome, custo, data) VALUES ( ?, ?, ?)`;
+        const query = `INSERT INTO Tarefas (nome, custo, data_limite, ordem) VALUES ( ?, ?, ?)`;
         const body = Object.values(tarefa);
         return new Promise((resolve, reject) => {
             Database.run(query, [...body], (e) => {
@@ -30,7 +33,7 @@ class DatabaseMetodos {
         })
     };
     static atualizarTarefaId(tarefa, id) {
-        const query = `UPDATE tarefa SET (nome, custo, data) = (?,?,?) WHERE id = ?`;
+        const query = `UPDATE tarefa SET (nome, custo, data_limite) = (?,?,?) WHERE id = ?`;
         const body = Object.values(pedido)
         return new Promise((resolve, reject) => {
             Database.run(query, [...body, id], (e, result) => {
