@@ -20,11 +20,11 @@
     <div class="form">
 
      
-        <form action="" method="post" class="tarefa-form">
+        <form class="tarefa-form">
 
           <input type="text" placeholder="Adicionar tarefa" class="incluir-tarefa">
-          <input type="number" placeholder="Custo" class="incluir-custo" required>
-          <input type="date" class="incluir-data" required>
+          <input type="number" step="0.01" class="incluir-custo" id="custo" required>
+          <input type="date" class="incluir-data" id="data_limite" required>
           <button type="submit" class="add-tarefa">+</button>
 
         
@@ -34,7 +34,6 @@
             <th>Tarefa</th>
             <th>Custo</th>
             <th>Data limite</th>
-            <th>Ordem</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -44,7 +43,7 @@
             <td>título da tarefa</td>
             <td>50.00</td>
             <td>14/11/2024</td>
-            <td>1</td>
+            <td></td>
             <td>
               <button class="btn-action">
                 <span class="material-symbols-outlined">edit</span>
