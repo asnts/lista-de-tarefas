@@ -13,14 +13,14 @@ router.get('/tarefas', (req, res) => {
   });
 
   router.post('/tarefas', (req, res) => {
-    const { nome, custo, data } = req.body;
+    const { nome, custo, data_limite, ordem } = req.body;
     
     db.query('SELECT MAX(id) AS maxId FROM Tarefas', (err, results) => {
       if (err) return res.status(500).send(err);
       const novaOrdem = (results[0].maxOrdem || 0) + 1;
   
-      db.query('INSERT INTO Tarefas (nome, custo, data) VALUES (?, ?, ?)', 
-      [nome, custo, data], (err, result) => {
+      db.query('INSERT INTO Tarefas (nome, custo, data_limite, ordem) VALUES (?, ?, ?, ?)', 
+      [nome, custo, data_limite, ordem], (err, result) => {
         if (err) return res.status(400).send(err);
         res.status(201).send('Tarefa incluída com sucesso!');
       });
@@ -29,13 +29,13 @@ router.get('/tarefas', (req, res) => {
 
   router.put('/tarefas/:id', (req, res) => {
     const { id } = req.params;
-    const { nome, custo, data_limite } = req.body;
+    const { nome, custo, data_limite, ordem } = req.body;
   
-    db.query('SELECT * FROM Tarefas WHERE nome = ? AND id != ?', [nome, id], (err, results) => {
+    db.query('SELECT * FROM Tarefas WHERE nome = ? AND id != ?', [nome, id, ordem], (err, results) => {
       if (err) return res.status(500).send(err);
       if (results.length > 0) return res.status(400).send('Nome da tarefa já existe.');
   
-      db.query('UPDATE Tarefas SET nome = ?, custo = ?, data = ? WHERE id = ?', 
+      db.query('UPDATE Tarefas SET nome = ?, custo = ?, data_limite = ? WHERE id = ?', 
       [nome, custo, data_limite, id], (err, result) => {
         if (err) return res.status(500).send(err);
         res.send('Tarefa atualizada com sucesso!');
