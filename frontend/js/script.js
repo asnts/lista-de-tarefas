@@ -2,7 +2,7 @@ const incluirTarefa = document.querySelector('.incluir-tarefa');
 const incluirCusto = document.querySelector('.incluir-custo');
 const incluirData = document.querySelector('.incluir-data');
 const tbody = document.querySelector('tbody');
-const addTarefa = document.querySelector('.tarefa-form');  // Corrigi a seleção do formulário
+const addTarefa = document.querySelector('.tarefa-form'); 
 
 const fetchTasks = async () => {
   const response = await fetch('http://localhost:3333/tarefas');
@@ -10,8 +10,26 @@ const fetchTasks = async () => {
   return tarefas;
 }
 
+// Função para formatar a data para o formato "YYYY-MM-DD" que o banco de dados espera
+function formatarDataParaBanco(data) {
+  const [dia, mes, ano] = data.split('/');
+  return `${ano}-${mes}-${dia}`; // Formato esperado pelo banco de dados
+}
+
+// Função para formatar a data para exibição "DD/MM/YYYY"
+function formatarDataParaExibir(data) {
+  if (!data) return 'Data Inválida'; // Verificação para evitar valores nulos
+  const dateObj = new Date(data);
+  if (isNaN(dateObj.getTime())) return 'Data Inválida'; // Verificação para evitar `NaN`
+  const dia = String(dateObj.getDate()).padStart(2, '0');
+  const mes = String(dateObj.getMonth() + 1).padStart(2, '0'); // Mês começa do zero
+  const ano = dateObj.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
+
 const criarTarefa = async (event) => {
   event.preventDefault();
+  console.log("Botão de adicionar tarefa foi acionado");
 
   const tarefaNome = incluirTarefa.value.trim();
   const tarefaCusto = incluirCusto.value.trim();
@@ -21,23 +39,41 @@ const criarTarefa = async (event) => {
     alert("Por favor, preencha todos os campos da tarefa.");
     return;
   }
+  if (isNaN(tarefaCusto)) {
+    console.log("O custo precisa ser um número válido.");
+    return;
+  }
+  
+  const formattedDate = formatarDataParaBanco(tarefaData);
+  if (!formattedDate) {
+    console.log("Data inválida.");
+    return;
+  }
+  
+  try{
+    const responseMaxOrdem = await fetch('http://localhost:3333/tarefas/max_ordem');
+    const maxOrdem = await responseMaxOrdem.json();
+    const novaOrdem = maxOrdem.max_ordem + 1;
 
-  const tarefa = {
-    nome: tarefaNome,
-    custo: parseFloat(tarefaCusto).toFixed(2),
-    data: new Date(tarefaData).toISOString()
-  };
-
-  try {
+  
     const response = await fetch('http://localhost:3333/tarefas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(tarefa),
+      body: JSON.stringify({
+        nome: tarefaNome,
+    custo: tarefaCusto,
+    data: formatarDataParaBanco(tarefaData)
+      }),
     });
 
-    if (!response.ok) throw new Error("Erro ao criar tarefa");
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Erro ao criar tarefa:", errorText);
+      throw new Error ("Erro ao criar tarefa");
+    }
 
     atualizarTarefas();
+
     incluirTarefa.value = '';
     incluirCusto.value = '';
     incluirData.value = '';
@@ -65,8 +101,7 @@ const atualizarTarefaId = async ({ id, nome, custo }) => {
 }
 
 const formatDate = (dateUTC) => {
-  const options = { dateStyle: 'long', timeStyle: 'short' };
-  return new Date(dateUTC).toLocaleString('pt-BR', options);
+  return formatarDataParaExibir(dateUTC); // Utiliza a função para exibir a data formatada
 }
 
 const createElement = (tag, innerText = '', innerHTML = '') => {
@@ -82,7 +117,7 @@ const createRow = (tarefa) => {
   const tr = createElement('tr');
   const tdNome = createElement('td', nome);
   const tdCusto = createElement('td', custo);
-  const tdData = createElement('td', formatDate(data));  // Corrigido para passar 'td' como primeiro argumento
+  const tdData = createElement('td', formatDate(data));  
   const tdActions = createElement('td');
 
   const editButton = createElement('button', '', '<span class="material-symbols-outlined">edit</span>');
