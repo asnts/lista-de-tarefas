@@ -20,7 +20,8 @@ class DatabaseMetodos {
         })
     };
     static criarTarefa(tarefa) {
-        const query = `INSERT INTO Tarefas (nome, custo, data_limite, ordem) VALUES ( ?, ?, ?)`;
+        const query = `INSERT INTO Tarefas (nome, custo, data_limite, ordem)
+    VALUES (?, ?, ?, (SELECT COALESCE(MAX(ordem), 0) + 1 FROM Tarefas))`;
         const body = Object.values(tarefa);
         return new Promise((resolve, reject) => {
             Database.run(query, [...body], (e) => {
