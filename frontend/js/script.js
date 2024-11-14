@@ -12,8 +12,9 @@ const fetchTasks = async () => {
 
 // Função para formatar a data para o formato "YYYY-MM-DD" que o banco de dados espera
 function formatarDataParaBanco(data) {
-  const [dia, mes, ano] = data.split('/');
-  return `${ano}-${mes}-${dia}`; // Formato esperado pelo banco de dados
+  if (!data) return null; // Caso a data esteja vazia ou undefined, retorna null
+  const [ano, mes, dia] = data.split('-'); // Divide no formato "YYYY-MM-DD"
+  return `${ano}-${mes}-${dia}`;
 }
 
 // Função para formatar a data para exibição "DD/MM/YYYY"
@@ -52,8 +53,8 @@ const criarTarefa = async (event) => {
   
   try{
     const responseMaxOrdem = await fetch('http://localhost:3333/tarefas/max_ordem');
-    const maxOrdem = await responseMaxOrdem.json();
-    const novaOrdem = maxOrdem.max_ordem + 1;
+    const maxOrdemData = await responseMaxOrdem.json();
+    const novaOrdem = (maxOrdemData.max_ordem || 0) + 1;;
 
   
     const response = await fetch('http://localhost:3333/tarefas', {
@@ -62,7 +63,8 @@ const criarTarefa = async (event) => {
       body: JSON.stringify({
         nome: tarefaNome,
     custo: tarefaCusto,
-    data: formatarDataParaBanco(tarefaData)
+    data_limite: formattedDate,
+    ordem: novaOrdem
       }),
     });
 
@@ -71,6 +73,9 @@ const criarTarefa = async (event) => {
       console.error("Erro ao criar tarefa:", errorText);
       throw new Error ("Erro ao criar tarefa");
     }
+
+    const result = await response.json(); // Agora a resposta será JSON
+    console.log(result.message);
 
     atualizarTarefas();
 
