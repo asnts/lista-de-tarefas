@@ -30,7 +30,7 @@ function formatarDataParaExibir(data) {
 
 const criarTarefa = async (event) => {
   event.preventDefault();
-  console.log("Botão de adicionar tarefa foi acionado");
+  alert("Tarefa adicionada com sucesso!");
 
   const tarefaNome = incluirTarefa.value.trim();
   const tarefaCusto = incluirCusto.value.trim();
@@ -95,14 +95,42 @@ const deletarTarefa = async (id) => {
   atualizarTarefas();
 }
 
-const atualizarTarefaId = async ({ id, nome, custo }) => {
-  await fetch(`http://localhost:3333/tarefas/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nome, custo }),
-  });
+const atualizarTarefaId = async ({ id, nome, custo, data_limite }) => {
 
-  atualizarTarefas();
+  if (!id){
+    console.error("Erro: ID não fornecido.");
+    return;
+  } 
+  console.log("Enviando PUT para /tarefas/" + id, { nome, custo });
+
+  try{
+    const response = await fetch(`http://localhost:3333/tarefas/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, custo, data_limite }),
+    });
+  
+    const contentType = response.headers.get("Content-Type");
+    if (contentType && contentType.includes("application/json")) {
+      const result = await response.json();
+      console.log("Resposta da API:", result);
+
+      atualizarTarefas();
+    } else {
+      const errorText = await response.text();
+      console.error("Erro na API, response não é JSON:", errorText);
+     
+    }
+    
+  }
+
+    
+    catch (error) {
+      console.error("Erro na função atualizarTarefaId:", error);
+    }
+ 
+
+
 }
 
 const formatDate = (dateUTC) => {
@@ -129,18 +157,72 @@ const createRow = (tarefa) => {
   const deleteButton = createElement('button', '', '<span class="material-symbols-outlined">delete</span>');
 
   const editForm = createElement('form');
-  const editInput = createElement('input');
-  editInput.value = nome;
-  editForm.appendChild(editInput);
+  const editInputNome = createElement('input');
+  editInputNome.value = nome;
 
-  editForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    atualizarTarefaId({ id, nome: editInput.value, custo });
-  });
+  const editInputCusto = createElement('input');
+  editInputCusto.type = 'number';
+  editInputCusto.step = '0.01';
+  editInputCusto.value = custo;
+
+  const editInputData = createElement('input');
+  editInputData.type = 'date';
+  editInputData.value = formatarDataParaExibir(data);
+
+  editForm.appendChild(editInputNome);
+  editForm.appendChild(editInputCusto);
+  editForm.appendChild(editInputData);
+
+  const saveButton = createElement('button', 'Salvar');
+  const cancelButton = createElement('button', 'Cancelar');
+
+  saveButton.type = 'button';
+  cancelButton.type = 'button';
+
+  editForm.appendChild(saveButton);
+  editForm.appendChild(cancelButton);
 
   editButton.addEventListener('click', () => {
-    tdNome.innerText = '';
-    tdNome.appendChild(editForm);
+    tdNome.innerText = ''; // Remove o nome da tarefa
+    tdCusto.innerText = ''; // Remove o custo
+    tdData.innerText = ''; // Remove a data
+    tdActions.innerText = ''; // Remove as ações
+
+    tdNome.appendChild(editForm); // Exibe o formulário
+  });
+
+  cancelButton.addEventListener('click', () => {
+    tdNome.innerText = nome; // Volta o nome original
+    tdCusto.innerText = custo; // Volta o custo original
+    tdData.innerText = formatDate(data); // Volta a data original
+    tdActions.innerHTML = ''; // Limpa as ações de edição/cancelamento
+    tdActions.appendChild(editButton); // Adiciona novamente o botão de editar
+    tdActions.appendChild(deleteButton); // Adiciona novamente o botão de deletar
+  });
+
+  saveButton.addEventListener('click', () => {
+    const nomeEditado = editInputNome.value.trim();
+    const custoEditado = editInputCusto.value.trim();
+    const dataEditada = editInputData.value.trim();
+
+    if (!nomeEditado || !custoEditado || !dataEditada) {
+      alert("Todos os campos precisam ser preenchidos.");
+      return;
+    }
+
+    atualizarTarefaId({
+      id,
+      nome: nomeEditado,
+      custo: custoEditado,
+      data_limite: dataEditada
+    });
+
+    tdNome.innerText = nomeEditado; // Atualiza o nome na tabela
+    tdCusto.innerText = custoEditado; // Atualiza o custo na tabela
+    tdData.innerText = formatarDataParaExibir(dataEditada); // Atualiza a data na tabela
+    tdActions.innerHTML = ''; // Limpa as ações de edição/cancelamento
+    tdActions.appendChild(editButton); // Recoloca o botão de editar
+    tdActions.appendChild(deleteButton); // Recoloca o botão de deletar
   });
 
   editButton.classList.add('btn-action');
@@ -157,7 +239,8 @@ const createRow = (tarefa) => {
   tr.appendChild(tdActions);
 
   return tr;
-}
+};
+
 
 const atualizarTarefas = async () => {
   const tasks = await fetchTasks();
