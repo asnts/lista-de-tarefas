@@ -4,3 +4,6 @@ require('dotenv').config();
 const PORT = process.env.PORT || 3333;
 
 app.listen(PORT, () => console.log(`Server running or port ${PORT}`));
+app.get('/', (req, res) => {
+    res.send('Bem vindo ao sistema de criação de tarefas!');
+  });
