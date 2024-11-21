@@ -1,7 +1,6 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
-const connection = mysql.createConnection(process.env.DB_URL);
 
 // Configuração do pool de conexões
 const pool = mysql.createPool({
@@ -14,7 +13,6 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
-
 
 
 async function testConnection() {
